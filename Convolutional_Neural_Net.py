@@ -1,35 +1,86 @@
 # 1st Party Modules
 from pickle import load
-from typing import List, Tuple
 from itertools import chain
 
-# 3rd Party Modules
+# 3rd Party Module - Numpy
 import numpy as np
 
+# 3rd Party Module - Tensorflow
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.datasets.mnist import load_data
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
-
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, \
     MaxPool2D, BatchNormalization, GaussianNoise
 
 from tensorflow.keras import regularizers
-
 from tensorflow.keras.layers.experimental.preprocessing import RandomRotation,\
     Normalization
 
+# 3rd Party Module - Matplotlib
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
+# Set figure size
 mpl.rcParams["figure.figsize"] = (12.8, 7.20)
 
+# Type Annotations
+from typing import Dict, List, Tuple
+from numpy.typing import ArrayLike
 
-class Helper:
+
+class Helper():
+    """ Helper class
+    
+    Attributes
+    ----------
+    None
+    
+    Parameters
+    ----------
+    None
+    
+    Methods
+    -------
+    conv_gscale (public) 
+        Static method for converting RGB Pictures to Greyscale.
+        
+    add_dim (public)
+        Static method for adding an additional dimension to a 
+        tensorflow array
+    
+    plot_accuracies (public)
+        Plot the accuracies over the epochs.
+    
+    plot_confusion_matrix (public)
+        Plot the confusion matrix.
+    
+    """
+    
     @staticmethod
-    def conv_gscale(data: np.array, numerator: float) -> np.array:
-        """ Convert to grey scale. """
+    def conv_gscale(data: ArrayLike, numerator: float) -> ArrayLike:
+        """ Convert to grey scale. 
+        
+        Parameters
+        ----------
+        data : ArrayLike
+            Numpy array containing image data
+            
+        numerator : float
+            Scaling/Normalization factor
+            
+        Returns
+        -------
+        data : ArrayLike 
+            Normalized data array
+        
+        Exception
+        ---------
+        [1] ZeroDivisionError: Raise ZeroDevision if numerator is equal to 0
+        
+        """
 
         try:
             return data / numerator
@@ -39,61 +90,25 @@ class Helper:
 
     
     @staticmethod
-    def add_dim(data: np.array) -> np.array:
-        """ Add new dimension and convert to float 32. """
+    def add_dim(data: ArrayLike) -> ArrayLike:
+        """ Add new dimension to an array and cast its content to float 32. 
+        
+        Parameters
+        ----------
+        data : ArrayLike
+            Numpy array containing image data
+        
+        Returns
+        -------
+        data : ArrayLike
+            New Array with added dimension
+        
+        """
         
         return data[..., tf.newaxis].astype(np.float32)
-
-
-class CNN_base(tf.keras.Model):
     
-    def __init__(self, feats: List[int], k_dim: Tuple[int], p_dim: Tuple[int]):
-        """ Constructor of base CNN architecture. """
-        
-        super(CNN_base, self).__init__()
-        
-        self.noise = GaussianNoise(stddev=0.05)
-        self.conv_layers = [
-            [
-                Conv2D(feat, k_dim, activation=tf.nn.relu, padding="same",
-                    kernel_regularizer=regularizers.L1(l1=0.01),
-                    bias_regularizer=regularizers.L1(l1=0.01), 
-                    activity_regularizer=None), 
-                MaxPool2D(pool_size=p_dim, padding="same")
-            ]
-            for _, feat in enumerate(feats)
-        ]
-
-
-        self.conv_layers = list(chain.from_iterable(self.conv_layers))      
-        self.batch_norm = BatchNormalization(axis=1)
-        
-        self.flatten = Flatten(data_format="channels_last")
-        self.dense_1 = Dense(128, activation=tf.nn.sigmoid)
-
-        self.dense_2 = Dense(10)       
-     
-
-    @tf.function
-    def call(self, input_data):
-        """ Define computation graph of the model. """
-        
-        input_data = self.noise(input_data)
-
-        for layer in self.conv_layers:
-            input_data = layer(input_data)
-
-        out_batch = self.batch_norm(input_data)
-        out_flat  = self.flatten(out_batch)
-        
-        out_dense_1 = self.dense_1(out_flat)
-        out_dense_2 = self.dense_2(out_dense_1)
-
-        return out_dense_2
-
-
     @staticmethod
-    def plot_accuracies(hist_dict: dict) -> None:
+    def plot_accuracies(hist_dict: Dict) -> None:
         """ Plot the accuracies over the epochs. """
 
         if not isinstance(hist_dict, dict):
@@ -123,7 +138,7 @@ class CNN_base(tf.keras.Model):
         
     
     @staticmethod
-    def plot_confusion_matrix(true: np.array, pred: np.array) -> None:
+    def plot_confusion_matrix(true: ArrayLike, pred: ArrayLike) -> None:
         """ Plot confusion matrix. """
         
         if len(pred) == 0 or len(true) == 0:
@@ -168,6 +183,53 @@ class CNN_base(tf.keras.Model):
                     ha="center", va="center", color="w")
     
         plt.show()
+
+
+class CNN_base(tf.keras.Model):
+    
+    def __init__(self, feats: List[int], k_dim: Tuple[int], p_dim: Tuple[int]):
+        """ Constructor of base CNN architecture. """
+        
+        super(CNN_base, self).__init__()
+        
+        self.noise = GaussianNoise(stddev=0.05)
+        self.conv_layers = (
+            [
+                Conv2D(feat, k_dim, activation=tf.nn.relu, padding="same",
+                    kernel_regularizer=regularizers.L1(l1=0.01),
+                    bias_regularizer=regularizers.L1(l1=0.01), 
+                    activity_regularizer=None), 
+                MaxPool2D(pool_size=p_dim, padding="same")
+            ]
+            for _, feat in enumerate(feats)
+        )
+
+
+        self.conv_layers = list(chain.from_iterable(self.conv_layers))      
+        self.batch_norm = BatchNormalization(axis=1)
+        
+        self.flatten = Flatten(data_format="channels_last")
+        self.dense_1 = Dense(128, activation=tf.nn.sigmoid)
+
+        self.dense_2 = Dense(10)       
+     
+
+    @tf.function
+    def call(self, input_data):
+        """ Define computation graph of the model. """
+        
+        input_data = self.noise(input_data)
+
+        for layer in self.conv_layers:
+            input_data = layer(input_data)
+
+        out_batch = self.batch_norm(input_data)
+        out_flat  = self.flatten(out_batch)
+        
+        out_dense_1 = self.dense_1(out_flat)
+        out_dense_2 = self.dense_2(out_dense_1)
+
+        return out_dense_2
 
 
 class CNN_pert(CNN_base):
