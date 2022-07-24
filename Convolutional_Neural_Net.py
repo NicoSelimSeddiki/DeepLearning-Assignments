@@ -108,8 +108,19 @@ class Helper():
         return data[..., tf.newaxis].astype(np.float32)
     
     @staticmethod
-    def plot_accuracies(hist_dict: Dict) -> None:
-        """ Plot the accuracies over the epochs. """
+    def plot_accuracies(hist_dict: Dict[str, floats]) -> None:
+        """ Plot the accuracies over the epochs. 
+        
+        Parameters
+        ----------
+        hist_dict : Dict[str, floats]
+            Dictionary containing the accuracies over the epochs
+            
+         Returns
+         -------
+         None
+        
+        """
 
         if not isinstance(hist_dict, dict):
             raise TypeError(hist_dict)
@@ -117,7 +128,7 @@ class Helper():
         fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, 
             tight_layout=True)
 
-        # range of epochs
+        # range of epochs 
         epochs = range(1, len(hist_dict["loss"])+1)
 
         # Plot loss w.r.t number of epochs
@@ -139,7 +150,21 @@ class Helper():
     
     @staticmethod
     def plot_confusion_matrix(true: ArrayLike, pred: ArrayLike) -> None:
-        """ Plot confusion matrix. """
+        """ Plot confusion matrix. 
+        
+        Parameters
+        ----------
+        true : ArrayLike
+            True Labels of the data.
+            
+        pred : ArrayLike
+            Predicted Labekls of the data.
+            
+        Returns
+        -------
+        None
+        
+        """
         
         if len(pred) == 0 or len(true) == 0:
             raise Exception("Array is empty!")
