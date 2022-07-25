@@ -221,8 +221,7 @@ class CNN_base(tf.keras.Model):
         
      call (public)
         Methdod for defineing the computation graph of the model
-    
-    
+ 
     """
     
     def __init__(self, feats: List[int], k_dim: Tuple[int], p_dim: Tuple[int]) -> None:
@@ -297,50 +296,50 @@ class CNN_base(tf.keras.Model):
 
 
 class CNN_pert(CNN_base):
-        """ Constructor of base CNN architecture. 
+   """ Constructor of base CNN architecture. 
         
-        Parameters
-        ----------
-        feats : List[int]
-            Number of features
+   Parameters
+   ----------
+   feats : List[int]
+        Number of features
             
-        k_dim : Tuple[int]
-            Number of Kernels repectively Kernel dimensions
+   k_dim : Tuple[int]
+        Number of Kernels repectively Kernel dimensions
             
-        p_dim : Tuple[int]
+   p_dim : Tuple[int]
+        Pooling layer dimensions
+            
+   Returns
+   -------
+   None
+        
+   """
+
+   def __init__(self):
+       """ Constructor of base CNN architecture. 
+        
+       Parameters
+       ----------
+       feats : List[int]
+           Number of features
+            
+       k_dim : Tuple[int]
+           Number of Kernels repectively Kernel dimensions
+            
+       p_dim : Tuple[int]
             Pooling layer dimensions
             
-        Returns
-        -------
-        None
+       Returns
+       -------
+       None
         
-        """
+       """
+        
+       super(CNN_pert, self).__init__([32, 64], (5, 5), (2, 2))
 
-    def __init__(self):
-        """ Constructor of base CNN architecture. 
-        
-        Parameters
-        ----------
-        feats : List[int]
-            Number of features
-            
-        k_dim : Tuple[int]
-            Number of Kernels repectively Kernel dimensions
-            
-        p_dim : Tuple[int]
-            Pooling layer dimensions
-            
-        Returns
-        -------
-        None
-        
-        """
-        
-        super(CNN_pert, self).__init__([32, 64], (5, 5), (2, 2))
-
-        self.normalisation = Normalization(axis=-1)
-        self.data_aug = RandomRotation(factor=(-0.75,0.75),fill_mode="constant")
-        self.drop_out = Dropout(0.25)
+       self.normalisation = Normalization(axis=-1)
+       self.data_aug = RandomRotation(factor=(-0.75,0.75),fill_mode="constant")
+       self.drop_out = Dropout(0.25)
         
     
     @tf.function
@@ -428,5 +427,3 @@ if __name__ == "__main__":
 
     print("After data augmentation on the perturbed test set")
     model.evaluate(x_test_pert, y_test_pert, batch_size=32)
-
-    
