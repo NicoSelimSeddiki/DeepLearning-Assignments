@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 mpl.rcParams["figure.figsize"] = (12.8, 7.20)
 
 # Type Annotations
-from typing import Dict, List, Tuple
+from typing import Dict, Generator, List, Tuple
 from numpy.typing import ArrayLike
 
 
@@ -106,6 +106,7 @@ class Helper():
         """
         
         return data[..., tf.newaxis].astype(np.float32)
+    
     
     @staticmethod
     def plot_accuracies(hist_dict: Dict[str, floats]) -> None:
@@ -211,9 +212,35 @@ class Helper():
 
 
 class CNN_base(tf.keras.Model):
+    """ Base Convolutional Neural Network 
     
-    def __init__(self, feats: List[int], k_dim: Tuple[int], p_dim: Tuple[int]):
-        """ Constructor of base CNN architecture. """
+    Methods
+    -------
+    __init__ (public) 
+        Constructor
+    
+    
+    """
+    
+    def __init__(self, feats: List[int], k_dim: Tuple[int], p_dim: Tuple[int]) -> None:
+        """ Constructor of base CNN architecture. 
+        
+        Parameters
+        ----------
+        feats : List[int]
+            Number of features
+            
+        k_dim : Tuple[int]
+            Number of Kernels repectively Kernel dimensions
+            
+        p_dim : Tuple[int]
+            Pooling layer dimensions
+            
+        Returns
+        -------
+        None
+        
+        """
         
         super(CNN_base, self).__init__()
         
@@ -232,16 +259,17 @@ class CNN_base(tf.keras.Model):
 
         self.conv_layers = list(chain.from_iterable(self.conv_layers))      
         self.batch_norm = BatchNormalization(axis=1)
-        
         self.flatten = Flatten(data_format="channels_last")
+        
         self.dense_1 = Dense(128, activation=tf.nn.sigmoid)
-
         self.dense_2 = Dense(10)       
      
 
     @tf.function
-    def call(self, input_data):
-        """ Define computation graph of the model. """
+    def call(self, input_data: ArrayLike) -> ArrayLike:
+        """ Define computation graph of the model. 
+        
+        """
         
         input_data = self.noise(input_data)
 
