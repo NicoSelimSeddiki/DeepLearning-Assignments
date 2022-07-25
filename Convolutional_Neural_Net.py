@@ -217,7 +217,10 @@ class CNN_base(tf.keras.Model):
     Methods
     -------
     __init__ (public) 
-        Constructor
+        Class Constructor
+        
+     call (public)
+        Methdod for defineing the computation graph of the model
     
     
     """
@@ -269,6 +272,16 @@ class CNN_base(tf.keras.Model):
     def call(self, input_data: ArrayLike) -> ArrayLike:
         """ Define computation graph of the model. 
         
+        Parameters
+        ----------
+        input_data : ArrayLike
+            Input data for the model
+            
+        Returns
+        -------
+        out_dense : ArrayLike
+            Output of the last layer.
+        
         """
         
         input_data = self.noise(input_data)
@@ -278,17 +291,51 @@ class CNN_base(tf.keras.Model):
 
         out_batch = self.batch_norm(input_data)
         out_flat  = self.flatten(out_batch)
-        
-        out_dense_1 = self.dense_1(out_flat)
-        out_dense_2 = self.dense_2(out_dense_1)
+        out_dense = self.dense_2(self.dense_1(out_flat))
 
-        return out_dense_2
+        return out_dense
 
 
 class CNN_pert(CNN_base):
-    
+        """ Constructor of base CNN architecture. 
+        
+        Parameters
+        ----------
+        feats : List[int]
+            Number of features
+            
+        k_dim : Tuple[int]
+            Number of Kernels repectively Kernel dimensions
+            
+        p_dim : Tuple[int]
+            Pooling layer dimensions
+            
+        Returns
+        -------
+        None
+        
+        """
 
     def __init__(self):
+        """ Constructor of base CNN architecture. 
+        
+        Parameters
+        ----------
+        feats : List[int]
+            Number of features
+            
+        k_dim : Tuple[int]
+            Number of Kernels repectively Kernel dimensions
+            
+        p_dim : Tuple[int]
+            Pooling layer dimensions
+            
+        Returns
+        -------
+        None
+        
+        """
+        
         super(CNN_pert, self).__init__([32, 64], (5, 5), (2, 2))
 
         self.normalisation = Normalization(axis=-1)
@@ -297,11 +344,26 @@ class CNN_pert(CNN_base):
         
     
     @tf.function
-    def call(self, input_data):
+    def call(self, input_data: ArrayLike) -> ArrayLike:
+        """ Define computation graph of the model. 
         
-        input_data = self.normalisation(input_data)
-        input_data = self.data_aug(input_data)
-        input_data = self.noise(input_data)
+        Parameters
+        ----------
+        input_data : ArrayLike
+            Input data for the model
+            
+        Returns
+        -------
+        out_dense : ArrayLike
+            Output of the last layer.
+        
+        """
+        
+        input_data = self.noise(
+            self.data_aug(
+                self.normalisation(input_data)
+            )
+        )
 
         for layer in self.conv_layers:
             input_data = layer(input_data)
